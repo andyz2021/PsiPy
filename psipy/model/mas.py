@@ -4,7 +4,6 @@ import astropy.units as u
 import numpy as np
 import scipy.interpolate
 import xarray as xr
-
 from psipy.io import get_mas_variables, read_mas_file
 from .base import ModelOutput
 
@@ -54,7 +53,7 @@ class MASOutput(ModelOutput):
     This is a storage object that contains a number of `Variable` objects. It
     is designed to be used like::
 
-        mas_output = MASOutput('directory')
+        mas_output = MASOutput('directory', file_type="hdf/h5")
         br = mas_output['br']
 
     Notes
@@ -73,8 +72,9 @@ class MASOutput(ModelOutput):
     def get_variables(self):
         return get_mas_variables(self.path)
 
+    # Only load files of the specified file type
     def load_file(self, var):
-        return read_mas_file(self.path, var)
+        return read_mas_file(self.path, var, self.file_type)
 
     def __repr__(self):
         return f'psipy.model.mas.MASOutput("{self.path}")'
@@ -82,8 +82,8 @@ class MASOutput(ModelOutput):
     def __str__(self):
         return f"MAS output in directory {self.path}\n" + super().__str__()
 
-    def cell_corner_b(self, t_idx: Optional[int] = None) -> xr.DataArray:
-        if not set(["br", "bt", "bp"]) <= set(self.variables):
+    def cell_corner_b(self, t_idx: Optional[int] = None) -> xr.DataArray: # Time argument is optional
+        if not set(["br", "bt", "bp"]) <= set(self.variables):#Need those magnetic field variables
             raise RuntimeError("MAS output must have the br, bt, bp variables loaded")
 
         # Interpolate radial coordinate
