@@ -12,12 +12,35 @@ import glob
 import os
 from pathlib import Path
 from typing import List
+import warnings
 
 import numpy as np
 import xarray as xr
 
 from .util import read_hdf4, read_hdf5
-
+_mas_units = [
+    "vr",
+    "vt",
+    "vp",
+    "va",
+    "br",
+    "bt",
+    "bp",
+    "bmag",
+    "rho",
+    "t",
+    "te",
+    "tp",
+    "p",
+    "jr",
+    "jt",
+    "jp",
+    "ep",
+    "em",
+    "zp",
+    "zm",
+    "heat"
+]
 __all__ = ["read_mas_file", "get_mas_variables", "convert_hdf_to_netcdf"]
 
 
@@ -26,10 +49,31 @@ def get_mas_filenames(directory: os.PathLike, var: str) -> List[str]:
     Get all MAS filenames in a given directory for a given variable.
     """
     directory = Path(directory)
-    return sorted(glob.glob(str(directory / f"{var}*")))
+    # res = sorted([f for f in glob.glob(str(directory / f"{var}[0-9][0-9][0-9].h*")) if "hdf" in f or "h5" in f])
+    # for f in res:
+    #     print(f)
+    #Searching for files with no timestep
+    hdf_files = sorted(glob.glob(str(directory / f"{var}.hdf")))
+    h5_files = sorted(glob.glob(str(directory / f"{var}.h5")))
+    no_digit = hdf_files+h5_files
+    #Searching for files with 3 digit timestep
+    hdf_files = sorted(glob.glob(str(directory / f"{var}[0-9][0-9][0-9].hdf")))
+    h5_files = sorted(glob.glob(str(directory / f"{var}[0-9][0-9][0-9].h5")))
+    three_digit = hdf_files+h5_files
+    #Searching for files with 6 digit timestep
+    six_hdf = sorted(glob.glob(str(directory / f"{var}[0-9][0-9][0-9][0-9][0-9][0-9].hdf")))
+    six_h5 = sorted(glob.glob(str(directory / f"{var}[0-9][0-9][0-9][0-9][0-9][0-9].h5")))
+    six_digit = six_hdf+six_h5
+
+    #Return the found files
+    if not len(three_digit) and not len(no_digit):
+        return six_digit
+    if not len(three_digit):
+        return no_digit
+    return three_digit
 
 
-def read_mas_file(directory, var):
+def read_mas_file(directory, var, file_type):
     """
     Read in a set of MAS output files.
 
@@ -39,6 +83,10 @@ def read_mas_file(directory, var):
         Directory to look in.
     var : str
         Variable name.
+    file_type : str
+        Whether to read in hdf/h5 files.
+        Only have to specify when there are both in a directory.
+        Defaults to hdf
 
     Returns
     -------
@@ -50,11 +98,24 @@ def read_mas_file(directory, var):
         raise FileNotFoundError(
             f'Could not find file for variable "{var}" in ' f"directory {directory}"
         )
+    typed_files = []
+    for file in files:
+        f = Path(file)
+        # Only search for hdf files if file_type is hdf
+        if f.suffix == ".hdf" and file_type == "hdf":
+            typed_files.append(f)
+        # Only search for h5 files if file_type is h5
+        elif f.suffix == ".h5" and file_type == "h5":
+            typed_files.append(f)
 
-    if Path(files[0]).suffix == ".nc":
-        return xr.open_mfdataset(files, parallel=True)
+    if not len(typed_files):
+        raise FileNotFoundError(
+            f'Could not find file for variable "{var}" with type "{file_type}" in ' f"directory {directory}"
+        )
+    if Path(typed_files[0]).suffix == ".nc":
+        return xr.open_mfdataset(typed_files, parallel=True)
 
-    data = [_read_mas(f, var) for f in files]
+    data = [_read_mas(f, var) for f in typed_files]
     return xr.concat(data, dim="time")
 
 
@@ -116,15 +177,43 @@ def get_mas_variables(path):
     var_names : list
         List of variable names present in the given directory.
     """
-    files = glob.glob(str(path / "*[0-9][0-9][0-9].*"))
+    no_digits = []
+    three_digits = []
+    six_digits = []
+    for var in _mas_units:
+        # Find all variable files with no timesteps
+        no_digits.extend(glob.glob(str(path / f"{var}.hdf")))
+        no_digits.extend(glob.glob(str(path / f"{var}.h5")))
+        # Find all variable files with 3 timesteps
+        three_digits.extend(glob.glob(str(path / f"{var}[0-9][0-9][0-9].hdf")))
+        three_digits.extend(glob.glob(str(path / f"{var}[0-9][0-9][0-9].h5")))
+        # Find all ariable files with 6 timesteps
+        six_digits.extend(glob.glob(str(path / f"{var}[0-9][0-9][0-9][0-9][0-9][0-9].hdf")))
+        six_digits.extend(glob.glob(str(path / f"{var}[0-9][0-9][0-9][0-9][0-9][0-9].h5")))
+
     # Get the variable name from the filename
+
+    # Here we take the filename before .hdf
+    none = [Path(f).stem.split(".")[0] for f in no_digits]
     # Here we take the filename before .hdf, and remove the last three
-    # characters which give the timestep
-    var_names = [Path(f).stem.split(".")[0][:-3] for f in files]
-    if not len(var_names):
+    # characters which is the timestep
+    three = [Path(f).stem.split(".")[0][:-3] for f in three_digits]
+    # Here we take the filename before .hdf, and remove the last six
+    # characters which is the timestep
+    six = [Path(f).stem.split(".")[0][:-6] for f in six_digits]
+
+    if not len(three) and not len(six) and not len(none):
         raise FileNotFoundError(f"No variable files found in {path}")
+
+    #Return variables
     # Use list(set()) to get unique values
-    return list(set(var_names))
+    elif not len(three) and not len(none):
+        return list(set(six))
+
+    elif not len(three):
+        return list(set(none))
+
+    return list(set(three))
 
 
 def get_timestep(path: os.PathLike) -> int:
@@ -135,5 +224,9 @@ def get_timestep(path: os.PathLike) -> int:
     for i, char in enumerate(fname):
         if char.isdigit():
             return int(fname[i:])
-
-    raise RuntimeError(f"Failed to parse timestamp from {path}")
+    #Default to timestep of 1
+    warnings.warn(
+        f"No timestep detected, defaulting to a timestep of 1."
+    )
+    return 1
+    #raise RuntimeError(f"Failed to parse timestamp from {path}")
