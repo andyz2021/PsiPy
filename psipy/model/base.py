@@ -40,12 +40,14 @@ class ModelOutput(abc.ABC):
         Path to the directory containing the model output files.
     """
 
-    def __init__(self, path: os.PathLike):
+    #Added file type specification
+    def __init__(self, path: os.PathLike, file_type="hdf"):
         self.path = Path(path)
         # Leave data empty for now, as we want to load on demand
         self._data: dict[str, xr.Dataset] = {}
         self._variables = self.get_variables()
         self._variables.sort()
+        self.file_type = file_type
 
     def __str__(self):
         return f"{self.__class__.__name__}\n" f"Variables: {self.variables}"
