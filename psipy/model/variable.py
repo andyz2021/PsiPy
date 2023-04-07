@@ -156,7 +156,7 @@ class Variable:
 
     # Methods for radial cuts
     @add_common_docstring(returns_doc=returns_doc)
-    def plot_radial_cut(self, r_idx, t_idx=None, ax=None, **kwargs):
+    def plot_radial_cut(self, r_idx, t_idx=None, ax=None, fontsize=7, **kwargs):
         """
         Plot a radial cut.
 
@@ -189,6 +189,12 @@ class Variable:
         r = r_slice["r"].values
         ax.set_title(f"{self.name}, r={r:.2f}" + r"$R_{\odot}$")
         viz.format_radial_ax(ax)
+        #Specify font size for x and y axis
+        for tick in ax.get_xticklabels():
+            tick.set_fontsize(fontsize)
+        for tick in ax.get_yticklabels():
+            tick.set_fontsize(fontsize)
+
 
         if t_idx is not None or self.n_timesteps == 1:
             return quad_mesh
@@ -373,7 +379,6 @@ class Variable:
     ) -> u.Quantity:
         """
         Sample this variable along a 1D trajectory of coordinates.
-
         Parameters
         ----------
         lon : astropy.units.Quantity
@@ -385,12 +390,10 @@ class Variable:
         t : array-like, optional
             Timsteps. If the variable only has a single timstep, this argument
             is not required.
-
         Returns
         -------
         astropy.units.Quantity
             The sampled data.
-
         Notes
         -----
         Linear interpolation is used to interpoalte between cells. See the
@@ -434,7 +437,6 @@ class Variable:
             raise RuntimeError("Latitude coordinates are not monotonically increasing")
         if not np.all(np.diff(points[2]) > 0):
             raise RuntimeError("Radial coordinates are not monotonically increasing")
-
         if len(points[3]) == 1:
             # Only one timestep
             xi = np.column_stack(
@@ -446,16 +448,122 @@ class Variable:
             xi = np.column_stack(
                 [lon.to_value(u.rad), lat.to_value(u.rad), r.to_value(self._runit), t]
             )
-
+            #print(xi)
         for i, dim in enumerate(dims[:-1]):
             bounds = np.min(points[i]), np.max(points[i])
+            # if(dim=='r'):
+            #     print(xi[:, i])
             coord_bounds = np.min(xi[:, i]), np.max(xi[:, i])
             if not (bounds[0] <= coord_bounds[0] and coord_bounds[1] <= bounds[1]):
+                #print(xi[:, i])
                 warnings.warn(
                     f"At least one sample coordinate is outside bounds {bounds} in {dim} dimension. Sample coordinate min/max values are {coord_bounds}."
                 )
-
+                # if coord_bounds[0] < bounds[0]:
+                #     xi[:, i] = bounds[0]
+                # elif coord_bounds[1] > bounds[1]:
+                #     xi[:, i] = bounds[1]
+                # print(xi[:, i])
         values_x = interpolate.interpn(
             points, values, xi, bounds_error=False, fill_value=np.nan
         )
         return values_x * self._unit
+    # def sample_at_coords(
+    #     self, lon: u.deg, lat: u.deg, r: u.m, t: Optional[np.ndarray] = None
+    # ) -> u.Quantity:
+    #     """
+    #     Sample this variable along a 1D trajectory of coordinates.
+    #
+    #     Parameters
+    #     ----------
+    #     lon : astropy.units.Quantity
+    #         Longitudes.
+    #     lat : astropy.units.Quantity
+    #         Latitudes.
+    #     r : astropy.units.Quantity
+    #         Radial distances.
+    #     t : array-like, optional
+    #         Timsteps. If the variable only has a single timstep, this argument
+    #         is not required.
+    #
+    #     Returns
+    #     -------
+    #     astropy.units.Quantity
+    #         The sampled data.
+    #
+    #     Notes
+    #     -----
+    #     Linear interpolation is used to interpoalte between cells. See the
+    #     docstring of `scipy.interpolate.interpn` for more information.
+    #     """
+    #     if lat.shape != lon.shape:
+    #         raise ValueError(
+    #             f"Shapes of latitude {lat.shape} and longitude {lon.shape} coordinates do not match."
+    #         )
+    #     if r.shape != lon.shape:
+    #         raise ValueError(
+    #             f"Shapes of radial {r.shape} and longitude {lon.shape} coordinates do not match."
+    #         )
+    #     if t is not None and t.shape != lon.shape:
+    #         raise ValueError(
+    #             f"Shapes of time {t.shape} and longitude {lon.shape} coordinates do not match."
+    #         )
+    #     dims = ["phi", "theta", "r", "time"]
+    #     #This line of code assigned points[3] to the time array associated with the variable
+    #     #Didn't take into account the timestep array we pass in
+    #     points = [self.data.coords[dim].values for dim in dims]
+    #     #This fixes it
+    #     if t is not None:
+    #         points[3] = t
+    #     values = self.data.values
+    #
+    #     # Pad phi points so it's possible to interpolate all the way from
+    #     # 0 to 360 deg
+    #     pcoords = points[0]
+    #     if np.allclose(pcoords[1], pcoords[-1] - (2 * np.pi), rtol=0, atol=1e-6):
+    #         # If second and last points are the same, don't need to wrap
+    #         pass
+    #     elif not np.allclose(pcoords[0], pcoords[-1] - (2 * np.pi), rtol=0, atol=1e-6):
+    #         # If first and last coordinate aren't the same when wrapped by 2pi
+    #         pcoords = np.append(pcoords, pcoords[0] + 2 * np.pi)
+    #         pcoords = np.insert(pcoords, 0, pcoords[-2] - 2 * np.pi)
+    #         points[0] = pcoords
+    #
+    #         values = np.append(values, values[0:1, :, :, :], axis=0)
+    #         values = np.insert(values, 0, values[-2:-1, :, :, :], axis=0)
+    #
+    #     # Check that coordinates are increasing
+    #     if not np.all(np.diff(points[0]) >= 0):
+    #         raise RuntimeError("Longitude coordinates are not monotonically increasing")
+    #     if not np.all(np.diff(points[1]) >= 0):
+    #         raise RuntimeError("Latitude coordinates are not monotonically increasing")
+    #     if not np.all(np.diff(points[2]) > 0):
+    #         raise RuntimeError("Radial coordinates are not monotonically increasing")
+    #
+    #     #This isn't really checking whether we pass in one timestep, but whether there's one timestep for the variable
+    #     #if len(points[3]) == 1:
+    #     if all(x == points[3][0] for x in points[3]):
+    #         # Only one timestep
+    #         xi = np.column_stack(
+    #             [lon.to_value(u.rad), lat.to_value(u.rad), r.to_value(self._runit)]
+    #         )
+    #         values = values[:, :, :, 0]
+    #         points = points[:-1]
+    #     else:
+    #         xi = np.column_stack(
+    #             [lon.to_value(u.rad), lat.to_value(u.rad), r.to_value(self._runit), t]
+    #         )
+    #
+    #     for i, dim in enumerate(dims[:-1]):
+    #         bounds = np.min(points[i]), np.max(points[i])
+    #         coord_bounds = np.min(xi[:, i]), np.max(xi[:, i])
+    #         if not (bounds[0] <= coord_bounds[0] and coord_bounds[1] <= bounds[1]):
+    #             warnings.warn(
+    #                 f"At least one sample coordinate is outside bounds {bounds} in {dim} dimension. Sample coordinate min/max values are {coord_bounds}."
+    #             )
+    #     # print(xi)
+    #     #print(values)
+    #     values_x = interpolate.interpn(
+    #         points, values, xi, bounds_error=False, fill_value=np.nan
+    #     )
+    #     return values_x * self._unit
