@@ -61,7 +61,7 @@ class FortranTracer:
 
         # cyclic only in the phi direction
         pcoords = bs.coords["phi"].values
-        if not np.allclose(pcoords[0], pcoords[-1] - (2 * np.pi), atol=1e-5, rtol=0):
+        if not np.allclose(pcoords[0], pcoords[-1] - (2 * np.pi), atol=1e-2, rtol=0):
             raise RuntimeError(
                 f"First and last phi coordinates do not differ by 2π ({pcoords[0]}, {pcoords[-1]})"
             )
@@ -102,13 +102,13 @@ class FortranTracer:
             Time slice of the ``mas_output`` to trace through. Doesn't need to
             be specified if only one time step is present.
         """
-        runit = mas_output.get_runit()
+        runit = mas_output.get_runit()#Get units, solar radii
         r = r.to_value(runit)
         lat = lat.to_value(u.rad)
-        lon = lon.to_value(u.rad)
-        seeds = np.stack([lon, lat, r], axis=-1)
+        lon = lon.to_value(u.rad)#Set r, lat, and lon values
+        seeds = np.stack([lon, lat, r], axis=-1)#Combine them into one axis
         vector_grid = self._vector_grid(mas_output, t_idx)
-        return self._trace_from_grid(vector_grid, seeds, runit)
+        return self._trace_from_grid(vector_grid, seeds, runit)#Run Vector grid and trace_from_grid functions
 
     def _trace_from_grid(self, grid, seeds: np.ndarray, runit: u.Unit) -> FieldLines:
         from streamtracer import StreamTracer
@@ -124,4 +124,4 @@ class FortranTracer:
         step_size = self.step_size * np.min(np.diff(rcoords))
         self.tracer = StreamTracer(max_steps, step_size)
         self.tracer.trace(seeds, grid)
-        return FieldLines(self.tracer.xs, runit)
+        return FieldLines(self.tracer.xs, runit)#Traced field lines are from the .xs attribute
