@@ -19,7 +19,7 @@ class FortranTracer:
     max_steps: 'auto', int
         Maximum number of steps each streamline can take before stopping. This
         directly sets the memory allocated to the traced streamlines, so do not
-        set it too large. If set to ``'auto'`` (the default),
+        set it too large. If set to ``'auto'`` (the default), (There should probably be a better explanation here)
     step_size : float
         Step size as a fraction of the smallest radial grid spacing.
 
@@ -83,6 +83,7 @@ class FortranTracer:
         lat: u.rad,
         lon: u.rad,
         t_idx: Optional[int] = None,
+        direction: int = 1,
     ):
         """
         Trace field lines.
@@ -101,18 +102,23 @@ class FortranTracer:
         t_idx : int, optional
             Time slice of the ``mas_output`` to trace through. Doesn't need to
             be specified if only one time step is present.
+        direction : int
+            Direction to trace field lines. 1 for forward, -1 for backward, 0 for both.
         """
         runit = mas_output.get_runit()#Get units, solar radii
-        r = r.to_value(runit)
+        r = r.to_value(runit)#Convert r to solar radii
         lat = lat.to_value(u.rad)
-        lon = lon.to_value(u.rad)#Set r, lat, and lon values
+        lon = lon.to_value(u.rad)#Convert to radians
         seeds = np.stack([lon, lat, r], axis=-1)#Combine them into one axis
         vector_grid = self._vector_grid(mas_output, t_idx)
-        return self._trace_from_grid(vector_grid, seeds, runit)#Run Vector grid and trace_from_grid functions
+        # print(len(vector_grid.xcoords))#lon
+        # print(len(vector_grid.ycoords))#lat
+        # print(len(vector_grid.zcoords))#r
+        return self._trace_from_grid(vector_grid, seeds, runit, direction)#Run Vector grid and trace_from_grid functions
 
-    def _trace_from_grid(self, grid, seeds: np.ndarray, runit: u.Unit) -> FieldLines:
+    #Add direction to specify
+    def _trace_from_grid(self, grid, seeds: np.ndarray, runit: u.Unit, direction) -> FieldLines:
         from streamtracer import StreamTracer
-
         seeds = np.atleast_2d(seeds)
         if self.max_steps == "auto":
             max_steps = int(4 * len(grid.zcoords) / self.step_size)
@@ -123,5 +129,5 @@ class FortranTracer:
         rcoords = grid.zcoords
         step_size = self.step_size * np.min(np.diff(rcoords))
         self.tracer = StreamTracer(max_steps, step_size)
-        self.tracer.trace(seeds, grid)
+        self.tracer.trace(seeds, grid, direction=direction)
         return FieldLines(self.tracer.xs, runit)#Traced field lines are from the .xs attribute
