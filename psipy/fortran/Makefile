@@ -15,7 +15,7 @@ LD_OPTS =
 
 FC_OMP_OPTS = -fopenmp
 
-# Change this to whatever it is on local computer
+# Change this to whatever it is on local computer to put object/mod files into that directory
 OBJ_DIR = /Users/Andy/Desktop/PSI/PsiPy/psipy/fortran/obj_files
 
 

@@ -7,8 +7,9 @@ def wrap_get_pb(py_rho=None, py_b = None, py_pb = None, py_help=False, py_verbos
     # Error if py_rho is not specified or file isn't found
     # Error if both py_b is None and py_pb is None
     # Get the value arrays from the Variable objects
-
-    return getpb.GETPB(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2, py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar, py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu)
+    # temp = getpb.getpb(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2, py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar, py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu)
+    # print(temp)
+    return getpb.getpb(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2, py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar, py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu)
 
 
 
