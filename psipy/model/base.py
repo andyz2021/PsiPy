@@ -41,13 +41,14 @@ class ModelOutput(abc.ABC):
     """
 
     #Added file type specification
-    def __init__(self, path: os.PathLike, file_type="hdf"):
+    def __init__(self, path: os.PathLike, vars=-1, timesteps=-1, file_type="hdf"):
         self.path = Path(path)
         # Leave data empty for now, as we want to load on demand
         self._data: dict[str, xr.Dataset] = {}
-        self._variables = self.get_variables()
+        self._variables = self.get_variables(vars)
         self._variables.sort()
         self.file_type = file_type
+        self.timesteps = timesteps
 
     def __str__(self):
         return f"{self.__class__.__name__}\n" f"Variables: {self.variables}"
@@ -58,7 +59,7 @@ class ModelOutput(abc.ABC):
         """
         if var not in self.variables:
             raise RuntimeError(
-                f"{var} not in list of known variables: " f"{self._variables}"
+                f"{var} not in list of known variables: " f"{self._variables}."
             )
         if var in self.loaded_variables:
             # Already loaded
@@ -85,7 +86,7 @@ class ModelOutput(abc.ABC):
     # These are methods that must be defined by classes that inherit from this
     # class
     @abc.abstractmethod
-    def get_variables(self) -> List[str]:
+    def get_variables(self, vars) -> List[str]:
         """
         Returns
         -------

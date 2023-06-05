@@ -33,7 +33,7 @@ class PLUTOOutput(ModelOutput):
     def get_runit(self):
         return u.AU
 
-    def get_variables(self):
+    def get_variables(self, vars, timesteps):
         return get_pluto_variables(self.path)
 
     def load_file(self, var):

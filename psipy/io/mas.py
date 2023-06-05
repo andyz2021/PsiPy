@@ -16,6 +16,7 @@ import warnings
 
 import numpy as np
 import xarray as xr
+import re
 
 from .util import read_hdf4, read_hdf5
 _mas_units = [
@@ -42,6 +43,49 @@ _mas_units = [
     "heat"
 ]
 __all__ = ["read_mas_file", "get_mas_variables", "convert_hdf_to_netcdf"]
+
+# AZ: Added run_info function
+def run_info(directory: os.PathLike) -> dict:
+    """
+    Get information about a MAS run.
+
+    Parameters
+    ----------
+    directory :
+        Directory to look in.
+
+    Returns
+    -------
+    info : dict
+        Dictionary containing information, with all the variables and timesteps.
+    """
+    directory = Path(directory)
+    # has all the variables and timesteps in the directory
+    info = {}
+    vars = []
+    timesteps = []
+    # Get all files from directory
+    files = sorted(glob.glob(str(directory / "*")))
+    for file in files:
+        # Get the name of the file
+        name = Path(file).stem.split(".")[0]
+        # Get the variable
+        var = re.findall("[a-zA-Z]+", name)[0]
+        # Get the timestep
+        timestep = re.findall("\d+", name)
+
+        if len(timestep) != 0:
+            timestep = timestep[0]
+            timesteps.append(timestep)
+        vars.append(var)
+
+    # Remove duplicates
+    vars = list(set(vars))
+    timesteps = list(set(timesteps))
+    info["vars"] = vars
+    info["timesteps"] = timesteps
+
+    return info
 
 
 def get_mas_filenames(directory: os.PathLike, var: str) -> List[str]:
@@ -73,7 +117,7 @@ def get_mas_filenames(directory: os.PathLike, var: str) -> List[str]:
     return three_digit
 
 
-def read_mas_file(directory, var, file_type):
+def read_mas_file(directory, var, file_type, timesteps):
     """
     Read in a set of MAS output files.
 
@@ -108,14 +152,27 @@ def read_mas_file(directory, var, file_type):
         elif f.suffix == ".h5" and file_type == "h5":
             typed_files.append(f)
 
+    # Only read in files with the specified timesteps
+    specified_files = []
+    if timesteps != -1:
+        for timestep in timesteps:
+            for file in typed_files:
+                if timestep in str(file):
+                    specified_files.append(file)
+        if len(specified_files) == 0:
+            raise FileNotFoundError(
+                f'Could not find file for variable "{var}" with timestep "{timesteps}" in ' f"directory {directory}"
+            )
+    else:
+        specified_files = typed_files
     if not len(typed_files):
         raise FileNotFoundError(
             f'Could not find file for variable "{var}" with type "{file_type}" in ' f"directory {directory}"
         )
-    if Path(typed_files[0]).suffix == ".nc":
+    if Path(specified_files[0]).suffix == ".nc":
         return xr.open_mfdataset(typed_files, parallel=True)
 
-    data = [_read_mas(f, var) for f in typed_files]
+    data = [_read_mas(f, var) for f in specified_files]
     return xr.concat(data, dim="time")
 
 
@@ -163,9 +220,9 @@ def convert_hdf_to_netcdf(directory, var):
         del data
 
 
-def get_mas_variables(path):
+def get_mas_variables(path, vars):
     """
-    Return a list of variables present in a given directory.
+    Return a list of variables present in a given directory, for the specified variables.
 
     Parameters
     ----------
@@ -177,10 +234,16 @@ def get_mas_variables(path):
     var_names : list
         List of variable names present in the given directory.
     """
+
+    # If vars is -1, we default to searching for all vars
+    if vars == -1:
+        vars = _mas_units
+
+   # If timestpes is -1, we defualt to searching for all timesteps
     no_digits = []
     three_digits = []
     six_digits = []
-    for var in _mas_units:
+    for var in vars:
         # Find all variable files with no timesteps
         no_digits.extend(glob.glob(str(path / f"{var}.hdf")))
         no_digits.extend(glob.glob(str(path / f"{var}.h5")))

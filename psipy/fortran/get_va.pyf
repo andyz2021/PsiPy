@@ -1,0 +1,33 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module get_va ! in 
+    interface  ! in :get_va
+        subroutine getva(br,br_r,br_t,br_p,bt,bt_r,bt_t,bt_p,bp,bp_r,bp_t,bp_p,rho,rho_r,rho_t,rho_p,nr,nt,np,va) ! in :get_va:getva.f90
+            real dimension(br_r,br_t,br_p) :: br
+            integer, optional,check(shape(br, 0) == br_r),depend(br) :: br_r=shape(br, 0)
+            integer, optional,check(shape(br, 1) == br_t),depend(br) :: br_t=shape(br, 1)
+            integer, optional,check(shape(br, 2) == br_p),depend(br) :: br_p=shape(br, 2)
+            real dimension(bt_r,bt_t,bt_p) :: bt
+            integer, optional,check(shape(bt, 0) == bt_r),depend(bt) :: bt_r=shape(bt, 0)
+            integer, optional,check(shape(bt, 1) == bt_t),depend(bt) :: bt_t=shape(bt, 1)
+            integer, optional,check(shape(bt, 2) == bt_p),depend(bt) :: bt_p=shape(bt, 2)
+            real dimension(bp_r,bp_t,bp_p) :: bp
+            integer, optional,check(shape(bp, 0) == bp_r),depend(bp) :: bp_r=shape(bp, 0)
+            integer, optional,check(shape(bp, 1) == bp_t),depend(bp) :: bp_t=shape(bp, 1)
+            integer, optional,check(shape(bp, 2) == bp_p),depend(bp) :: bp_p=shape(bp, 2)
+            real dimension(rho_r,rho_t,rho_p) :: rho
+            integer, optional,check(shape(rho, 0) == rho_r),depend(rho) :: rho_r=shape(rho, 0)
+            integer, optional,check(shape(rho, 1) == rho_t),depend(rho) :: rho_t=shape(rho, 1)
+            integer, optional,check(shape(rho, 2) == rho_p),depend(rho) :: rho_p=shape(rho, 2)
+            integer :: nr
+            integer :: nt
+            integer :: np
+            real dimension(np,nt,nr),intent(out) :: va
+        end subroutine getva
+    end interface 
+end python module get_va
+
+! This file was auto-generated with f2py (version:1.24.2).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e

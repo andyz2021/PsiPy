@@ -15,7 +15,7 @@ __all__ = ["MASOutput"]
 _vunit = [u.km / u.s, 481.37107]
 _bunit = [u.G, 2.2068914]
 _junit = [u.A / u.m**2, 2.5232592e-07]
-_neunit = [u.cm**-3, 1.0e8]
+_neunit = [u.cm**-3, 1.6726e-16]
 _tempunit = [u.K, 2.8070667e07]
 _punit = [u.Pa, 3.8757170e-02]
 _energyunit = [u.erg / u.cm**3, 0.38757170]
@@ -69,12 +69,12 @@ class MASOutput(ModelOutput):
     def get_runit(self):
         return u.R_sun
 
-    def get_variables(self):
-        return get_mas_variables(self.path)
+    def get_variables(self, vars):
+        return get_mas_variables(self.path, vars)
 
     # Only load files of the specified file type
     def load_file(self, var):
-        return read_mas_file(self.path, var, self.file_type)
+        return read_mas_file(self.path, var, self.file_type, self.timesteps)
 
     def __repr__(self):
         return f'psipy.model.mas.MASOutput("{self.path}")'
@@ -88,12 +88,32 @@ class MASOutput(ModelOutput):
 
         # Interpolate radial coordinate
         new_rcoord = self["bt"].r_coords
+        # print(new_rcoord)
+        # print(self["br"].r_coords)
+        # Interpolates a 1D function
+        # br.r_coords and br.data.isel are used to approximate some function f y = f(x)
+        # Function that maps data values to r coordinates
+        # Returns a function, which is then called on new_rcoord to find the new values based on the function
+        # Uses r_coords of bt
+        # print("old r coords")
+        # print(len(self["br"].r_coords))
+        # print("old br data")
+        # print(self["br"].data.isel(time=t_idx or 0))
+        # print("")
         br = scipy.interpolate.interp1d(
             self["br"].r_coords,
             self["br"].data.isel(time=t_idx or 0),
             axis=2,
             fill_value="extrapolate",
         )(new_rcoord)
+        # print("new r coords")
+        # print(new_rcoord)
+        # print("new br data")
+        # print(br)
+        # #print(br.data.isel(time=t_idx or 0))
+        # print("")
+        # print(br.shape)
+
 
         # Interpolate theta coordinate
         new_tcoord = self["bp"].theta_coords
@@ -118,14 +138,23 @@ class MASOutput(ModelOutput):
         edge_data = self["bp"].data.isel(time=t_idx or 0)
         edge_data = np.stack([edge_data[-1, :, :], edge_data[0, :, :]], axis=0)
         bp_edge = scipy.interpolate.interp1d(edge_pcoord, edge_data, axis=0)(_2pi)
+        #print(bp_edge.shape)
         bp_edge = bp_edge.reshape((1, *bp_edge.shape))
+        #print(bp_edge)
+        #print(bp_edge.shape)
 
+        print(bp.shape)
+        print(bt.shape)
+        print(br.shape)
         # Add an extra layer of cells at phi=2pi for the tracer
         br = np.concatenate((br, br[0:1]), axis=0)
         bt = np.concatenate((bt, bt[0:1]), axis=0)
         bp = np.concatenate((bp_edge, bp[1:, :, :], bp_edge), axis=0)
         new_pcoord = np.append(new_pcoord, _2pi)
 
+        print(bp.shape)
+        print(bt.shape)
+        print(br.shape)
         return xr.DataArray(
             np.stack([bp, bt, br], axis=-1),
             dims=["phi", "theta", "r", "component"],
