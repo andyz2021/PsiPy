@@ -55,26 +55,8 @@ REAL :: avbr, avbt, avbp, bsq, srho
 !Original code
 nrm1=nr-1
 ntm1=nt-1
-print *, 'shape of br=', SHAPE(br)
-!print *, 'shape of bt=', SHAPE(bt)
-!print *, 'shape of bp=', SHAPE(bp)
-!print *, 'shape of rho=', SHAPE(rho)
-!print *, 'shape of va=', SHAPE(va)
-print *, 'val_1=', br(270, 100, 200)
-!print *, 'val_3=', br(1, 1, 2)
-!print *, 'val_4=', br(2, 1, 1)
-!print *, 'val_2=', br(21, 26, 31)
-!print *, 'nr=', nr
-!print *, 'nt=', nt
-!print *, 'np=', np
-!print *, 'br_avg', .5*(br(151, 73, 129) + br(151, 72, 129))
-!print *, 'bt_avg', .5*(bt(151, 73, 129) + bt(151, 73, 128))
-!print *, 'bp_avg', .25*(bp(151, 73, 129) + bp(151, 72, 129) + bp(151, 73, 128) + bp(151, 72, 128))
-!print *, 'rho', rho(151, 73, 129)
-!print *, 'bsq', (.5*(br(151, 73, 129) + br(151, 72, 129)))**2 + (0.5*(bt(151, 73, 129) + bt(151, 73, 128)))**2 + &
-!        (.25*(bp(151, 73, 129) + bp(151, 72, 129) + bp(151, 73, 128) + bp(151, 72, 128)))**2
-!print *, 'va', 481.371*sqrt(((.5*(br(151, 73, 129) + br(151, 72, 129)))**2 + (0.5*(bt(151, 73, 129) + bt(151, 73, 128)))**2 + &
-!        (.25*(bp(151, 73, 129) + bp(151, 72, 129) + bp(151, 73, 128) + bp(151, 72, 128)))**2) / rho(151, 73, 129))
+
+
 
 do i=1,np
     do j=1,nt
@@ -99,15 +81,6 @@ do i=1,np
             bsq=(avbr**2+avbt**2+avbp**2)
             srho=sign(1.,rho(i,j,k))
             va(i,j,k)=srho*sqrt(bsq/(srho*rho(i,j,k)))
-!            if (i==20 .and. j==20 .and. k==30) then
-!                print *, 'avbr=', avbr
-!                print *, 'avbt=', avbt
-!                print *, 'avbp=', avbp
-!                print *, 'bsq=', bsq
-!                print *, 'srho=', srho
-!                print *, 'rho=', rho(i,j,k)
-!                print *, 'va=', va(i,j,k)
-!            end if
         enddo
     enddo
 enddo

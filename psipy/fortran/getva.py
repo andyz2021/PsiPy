@@ -5,19 +5,10 @@ from psipy.fortran import get_va
 def wrap_get_va(br, bt, bp, rho):
 
     # Get the value arrays from the Variable objects
-    # Transpose them so that they work for Fortran
     br = br.data.values
-    # br = numpy.squeeze(br, axis=3)
-    # br = numpy.transpose(br, (2, 1, 0))
     bt = bt.data.values
-    # bt = numpy.squeeze(bt, axis=3)
-    # bt = numpy.transpose(bt, (2, 1, 0))
     bp = bp.data.values
-    # bp = numpy.squeeze(bp, axis=3)
-    # bp = numpy.transpose(bp, (2, 1, 0))
     rho = rho.data.values
-    # rho = numpy.squeeze(rho, axis=3)
-    # rho = numpy.transpose(rho, (2, 1, 0))
 
     #Convert Real units back to Mas units
     b_unit = 2.2068914
@@ -31,9 +22,6 @@ def wrap_get_va(br, bt, bp, rho):
     rho = rho / rho_unit
     print(br.shape)
     print(br[269][99][199])
-    # print(bt.shape)
-    # print(bp.shape)
-    # print(rho.shape)
     # Set sizes
     # Dimension order is reversed in Python
     nr = br.shape[2]
@@ -44,26 +32,6 @@ def wrap_get_va(br, bt, bp, rho):
     nr = nr-1
     nt = nt-1
     np = np-1
-    #
-    # print("nr: ", nr)
-    # print("nt: ", nt)
-    # print("np: ", np)
-    # a = 29
-    # b = 24
-    # c = 19
-    # x = 0.5 * (br[29][24][19] + br[a][b-1][c])
-    # print(x)
-    # y = 0.5 * (bt[a][b][c] + bt[a][b][c-1])
-    # print(y)
-    # z = 0.25 * (bp[a][b][c] + bp[a][b-1][c] + bp[a][b][c-1] + bp[a][b-1][c-1])
-    # print(z)
-    # bsq = x**2 + y**2 + z**2
-    # print("bsq: ", bsq)
-    # print("rho: ", rho[a][b][c])
-    # print("va: ", numpy.sqrt(bsq / abs(rho[a][b][c])))
-
-
-    # print(type(get_va.getva(br, bt, bp, rho, np, nt, nr)))
 
     # Return va from the getva function
     v_unit = 481.37107
