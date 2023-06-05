@@ -55,12 +55,12 @@ REAL :: avbr, avbt, avbp, bsq, srho
 !Original code
 nrm1=nr-1
 ntm1=nt-1
-!print *, 'shape of br=', SHAPE(br)
+print *, 'shape of br=', SHAPE(br)
 !print *, 'shape of bt=', SHAPE(bt)
 !print *, 'shape of bp=', SHAPE(bp)
 !print *, 'shape of rho=', SHAPE(rho)
 !print *, 'shape of va=', SHAPE(va)
-!print *, 'val_1=', br(1, 1, 1)
+print *, 'val_1=', br(270, 100, 200)
 !print *, 'val_3=', br(1, 1, 2)
 !print *, 'val_4=', br(2, 1, 1)
 !print *, 'val_2=', br(21, 26, 31)
