@@ -86,6 +86,8 @@
 !
       logical :: compute_pb
       logical :: compute_b
+
+      logical :: write_to_file
 !
 ! ****** Options for emissivity weighted integrals.
 !

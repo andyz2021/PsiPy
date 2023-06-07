@@ -140,7 +140,7 @@
       subroutine GETPB(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, &
        py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2,&
        py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar,&
-       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu, ans)
+       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu, py_write_to_file, ans)
 !
 !-----------------------------------------------------------------------
 !
@@ -198,6 +198,8 @@
       logical :: py_verbose
 
       logical :: py_help
+
+      logical :: py_write_to_file
 !
       real :: py_long
       real :: py_b0
@@ -249,7 +251,7 @@
       call python_getpb(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, &
        py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2,&
        py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar,&
-       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu)
+       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu, py_write_to_file)
 !
 ! ****** Check that at least one of B or pB was requested.
 !
@@ -590,8 +592,13 @@
 !
       hdf32 = rho%sds%hdf32
 !
+      if (verbose .AND. write_to_file) then
+            write (*,*)
+            write (*,*) 'Writing to pb/b file.'
+          endif
 ! ****** Write the pB image.
 !
+      if (compute_pb .AND. write_to_file) call write_image(pb_file, 'pB', x, y, pb)
       if (compute_pb) ans = pb
 !call write_image(pb_file, 'pB', x, y, pb)
 ! ****** We want it to return pb/b for the python version
@@ -599,7 +606,7 @@
 !
 ! ****** Write the B image.
 !
-!      if (compute_b) call write_image(b_file, 'B', x, y, b)
+       if (compute_b .AND. write_to_file) call write_image(b_file, 'B', x, y, b)
        if (compute_b) ans = b
 !
 ! ****** Write the scalar field image.
@@ -631,7 +638,7 @@
       subroutine python_getpb(py_rho, py_b, py_pb, py_help, py_verbose, py_cubic, py_oldmas, py_long, &
        py_p, py_b0, py_r, py_nx, py_ny, py_x0, py_x1, py_y0, py_y1, py_wispr1, py_wispr2,&
        py_rocc, py_dsmult, py_power, py_disk, py_vf, py_vr, py_vt, py_vp, py_scalar,&
-       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu)
+       py_avg_scalar, py_avg_los_angle, py_avg_vlos, py_avg_vx, py_avg_vy, py_avg_using_b, py_he_frac, py_mu, py_write_to_file)
 
 !
 !-----------------------------------------------------------------------
@@ -690,6 +697,8 @@
       logical :: py_verbose
 
       logical :: py_help
+
+      logical :: py_write_to_file
 !
       real :: py_long
       real :: py_b0
@@ -794,6 +803,16 @@
       else
         oldmas=.false.
       end if
+
+! ****** Whether to write to file or not
+
+      if (py_write_to_file) then
+          write_to_file=.true.
+      else
+          write_to_file=.false.
+      end if
+
+
 !
 ! ****** Carrington rotation longitude.
 !
