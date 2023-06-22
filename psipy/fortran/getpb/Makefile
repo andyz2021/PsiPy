@@ -16,7 +16,7 @@ LD_OPTS =
 FC_OMP_OPTS = -fopenmp
 
 # Change this to whatever it is on local computer to put object/mod files into that directory
-OBJ_DIR = /Users/Andy/Desktop/PSI/PsiPy/psipy/fortran/obj_files
+OBJ_DIR = /Users/Andy/Desktop/PSI/PsiPy/psipy/fortran/getpb/obj_files
 
 
 HDF5_INC_FLAGS = -I/opt/psi/gnu/ext_deps/deps/hdf5/include -I/opt/psi/gnu/ext_deps/deps/zlib/include

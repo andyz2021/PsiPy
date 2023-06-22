@@ -1,5 +1,5 @@
 import numpy
-from psipy.fortran import get_va
+from psipy.fortran.getva import get_va
 
 
 def wrap_get_va(br, bt, bp, rho):
@@ -20,8 +20,6 @@ def wrap_get_va(br, bt, bp, rho):
     rho_unit = 1.6726*10**-16
     # rho_unit = 1
     rho = rho / rho_unit
-    print(br.shape)
-    print(br[269][99][199])
     # Set sizes
     # Dimension order is reversed in Python
     nr = br.shape[2]

@@ -1,5 +1,5 @@
 import numpy
-from psipy.fortran import getpb
+from psipy.fortran.getpb import getpb
 
 
 def wrap_get_pb(py_rho=None, py_b = None, py_pb = None, py_help=False, py_verbose=False, py_cubic=False, py_oldmas=False, py_long=0, py_p=0, py_b0=0, py_r=0, py_nx=201, py_ny=201, py_x0=-3, py_x1=3, py_y0=-3, py_y1=3, py_wispr1=False, py_wispr2=False, py_rocc=1, py_dsmult=1, py_power=0, py_disk=-1, py_vf=None, py_vr=None, py_vt=None, py_vp=None, py_scalar=None, py_avg_scalar=None, py_avg_los_angle=None, py_avg_vlos=None, py_avg_vx=None, py_avg_vy=None, py_avg_using_b=False, py_he_frac=0, py_mu = 0.63, py_write_to_file = False):
